@@ -44,7 +44,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
               {_renderPrefixSuffix(props.prefix)}
             </div>
           )}
-
+  
           {props.suffix && (
             <div
               className={cn("absolute top-1/2 px-3 right-0 text-sm", {
