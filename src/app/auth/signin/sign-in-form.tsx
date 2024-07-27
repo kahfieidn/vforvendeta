@@ -7,17 +7,25 @@ import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 import {useForm} from "react-hook-form";
-
+import * as yup from "yup";
+import {yupResolver} from '@hookform/resolvers/yup';
 type UserAuthForm = {
   email: string;
   password: string;
 }
 
+const schema = yup.object({
+  email: yup.string().email().required(),
+  password: yup.string().min(6).required(),
+}).required();
+
 function SignInForm() {
   const [showPassword, setShowPassword] = useState(false);
 
   const router = useRouter();
-  const {handleSubmit, register, formState: {errors}} = useForm<UserAuthForm>({});
+  const {handleSubmit, register, formState: {errors}} = useForm<UserAuthForm>({
+    resolver: yupResolver(schema)
+  });
 
   const onSubmit = (data: UserAuthForm) => {
     console.log("🚀 ~ onSubmit ~ data:", data)
