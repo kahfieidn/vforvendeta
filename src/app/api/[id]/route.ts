@@ -16,4 +16,3 @@ export async function GET(req: NextRequest, params: Params) {
         status: 200,
     });
 }
-
