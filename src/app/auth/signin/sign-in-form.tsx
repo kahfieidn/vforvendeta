@@ -4,35 +4,68 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { hover } from "@/lib/hover";
 import { cn } from "@/lib/utils";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import React, { useState } from "react";
-import {useForm} from "react-hook-form";
+import { useForm } from "react-hook-form";
 import * as yup from "yup";
-import {yupResolver} from '@hookform/resolvers/yup';
+import { yupResolver } from "@hookform/resolvers/yup";
+import { signIn } from "next-auth/react";
+import { useToast } from "@/components/ui/use-toast";
+
 type UserAuthForm = {
   email: string;
   password: string;
-}
+};
 
-const schema = yup.object({
-  email: yup.string().email().required(),
-  password: yup.string().min(6).required(),
-}).required();
+const schema = yup
+  .object({
+    email: yup.string().email().required(),
+    password: yup.string().min(6).required(),
+  })
+  .required();
 
 function SignInForm() {
   const [showPassword, setShowPassword] = useState(false);
-
+  const {toast} = useToast();
   const router = useRouter();
-  const {handleSubmit, register, formState: {errors}} = useForm<UserAuthForm>({
-    resolver: yupResolver(schema)
+  const searchParams = useSearchParams();
+  const {
+    handleSubmit,
+    register,
+    formState: { errors },
+  } = useForm<UserAuthForm>({
+    resolver: yupResolver(schema),
   });
 
-  const onSubmit = (data: UserAuthForm) => {
-    console.log("🚀 ~ onSubmit ~ data:", data)
-  }
+  const onSubmit = async (data: UserAuthForm) => {
+    try {
+      const user = await signIn("credentials", {
+        email: data.email,
+        password: data.password,
+        callbackUrl: searchParams.get("callbackUrl") || "/",
+        redirect: false,
+      });
+
+      if (!user?.error) {
+        router.push(user?.url || "/")
+      }else{
+        toast({
+          title: "Something went wrong",
+          description: "Please check your email and password",
+          variant: "destructive",
+          duration: 2000
+        });
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col w-[100%] gap-4 items-center">
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      className="flex flex-col w-[100%] gap-4 items-center"
+    >
       <div className="w-[100%] text-3xl font-semibold tracking-widest mb-2 text-center">
         Masuk akun anda
       </div>
